@@ -1,114 +1,81 @@
+# streamlit_app.py
+
 import streamlit as st
-import matplotlib.pyplot as plt
-import numpy as np
-import io
-
-# ------------------------------------------------------------------
-# Helper: parse a question, build data & create a pie chart image.
-#
-# This is intentionally simple – you can replace it with an LLM or
-# a domain‑specific parser.
-# ------------------------------------------------------------------
-def generate_pie_chart(question_text):
-    """
-    Very naive “parser”: look for the first number in the string,
-    treat it as the number of categories, then build random data.
-
-    Returns:
-        BytesIO image buffer containing PNG data.
-    """
-    # 1. Try to extract an integer that looks like "5 categories"
-    import re
-    numbers = [int(num) for num in re.findall(r'\b\d+\b', question_text)]
-    n_categories = numbers[0] if numbers else 3     # default 3
-
-    labels = [f"Slice {i+1}" for i in range(n_categories)]
-
-    # random data that sums to 100
-    values = np.random.randint(5, 35, size=n_categories)
-    total = values.sum()
-    values = values / total * 100          # percentages
-
-    # 2. Build the plot into a PNG buffer
-    fig, ax = plt.subplots(figsize=(6, 4))
-    wedges, texts, autotexts = ax.pie(
-        values,
-        labels=labels,
-        autopct='%1.0f%%',
-        startangle=90
-    )
-    # equal aspect ratio ensures that pie is drawn as a circle.
-    ax.axis('equal')
-    plt.title(f"Pie chart for: {question_text}")
-
-    buf = io.BytesIO()
-    fig.savefig(buf, format='png', bbox_inches='tight')
-    plt.close(fig)
-    buf.seek(0)                           # rewind the buffer so Streamlit can read it
-
-    return buf
+from nlp import draw_pcl_piechart     # <-- your function
+import base64                                  # for optional base‑64 download button
 
 
 # ------------------------------------------------------------------
-# 1. Set up UI – chat input & image placeholder
+# 1️⃣  Page layout
 # ------------------------------------------------------------------
+st.set_page_config(page_title="PCL Coverage Chat", page_icon="📊", layout="centered")
+st.title("⚡️ PCL Airtime Coverage Explorer")
 
-st.set_page_config(page_title="Pie‑Chart Chat", layout="centered")
-st.title("Howdy Hey")
+# Session state to keep chat history & image buffers alive
+if "chat_log" not in st.session_state:
+    st.session_state.chat_log = []
 
-# Store all messages (history) in session_state so the widget persists.
-if 'messages' not in st.session_state:
-    st.session_state.messages = []
-
-# 2. Create the chat box
-#   - For Streamlit <1.28 you can replace this with st.text_input + a Submit button
+# ------------------------------------------------------------------
+# 2️⃣  Chat input (Streamlit 1.28+)
+# ------------------------------------------------------------------
 try:
-    user_question = st.chat_input("Type your question…")          # new UI widget
-except AttributeError:                                            # older version fallback
-    user_question = st.text_input("Maybe you wanna generate a pie chart?")
+    user_question = st.chat_input("Ask about flight coverage…")
+except AttributeError:                # older Streamlit <1.28
+    user_question = st.text_input("What flights are you interested in?", key="q")
 
-# 3. Handle the input once it appears
+# ------------------------------------------------------------------
+# 3️⃣  Process the question when the user hits enter / submit
+# ------------------------------------------------------------------
 if user_question:
-    # Append to history and clear chat_input automatically.
-    st.session_state.messages.append({"role": "user", "content": user_question})
+    # Append to the chat log
+    st.session_state.chat_log.append({"role": "user", "content": user_question})
 
-    # Call your function – in a real app you could do heavy NLP/LLM calls here.
-    with st.spinner('Generating chart…'):
-        image_buffer = generate_pie_chart(user_question)
+    # Run heavy logic inside a spinner for UX
+    with st.spinner("Generating pie chart…"):
+        try:
+            img_buf, summary = draw_pcl_piechart(user_question)
+        except Exception as e:
+            st.error(f"❌ {e}")
+            img_buf = None
 
-    # Show the generated image
-    st.subheader("Generated Pie Chart")
-    st.image(image_buffer, use_container_width=True)
+    if img_buf:
+        # Display the chart
+        st.subheader("Generated Pie Chart")
+        st.image(img_buf, use_container_width=True)
 
-    # Echo back the user question in a chat‑style log (optional)
-    if 'chat_log' not in st.session_state:
-        st.session_state.chat_log = []
+        # Optional: let user download the PNG
+        b64_img = base64.b64encode(img_buf.getvalue()).decode()
+        href = f'<a href="data:image/png;base64,{b64_img}" download="pcl_coverage.png">Download PNG</a>'
+        st.markdown(href, unsafe_allow_html=True)
 
-    st.session_state.chat_log.append({
-        "role": "user",
-        "content": user_question
-    })
-    st.session_state.chat_log.append({
-        "role": "assistant",
-        "content": "Here’s your pie‑chart!"
-    })
+        # Show summary metrics
+        st.write(
+            f"**Flights found:** {summary['flights']} | "
+            f"**Total airtime:** {summary['total_airtime_sec']:.1f}s | "
+            f"**Detected airtime:** {summary['detected_airtime_sec']:.1f}s | "
+            f"**Coverage:** {summary['coverage_pct']:.2f}%"
+        )
+
+        # Log assistant reply
+        st.session_state.chat_log.append(
+            {"role": "assistant", "content": "Here’s your chart! 👇"}
+        )
 
 # ------------------------------------------------------------------
-# 4. Optionally show conversation history (plain text)
+# 4️⃣  Show chat history (optional)
 # ------------------------------------------------------------------
-if 'chat_log' in st.session_state and st.session_state.chat_log:
+if st.session_state.chat_log:
     st.markdown("---")
     st.subheader("Conversation History")
 
-    for i, msg in enumerate(st.session_state.chat_log):
-        if msg["role"] == "user":
-            st.markdown(f"**You:** {msg['content']}")
-        else:
-            st.markdown(f"**Assistant:** {msg['content']}")
+    for msg in st.session_state.chat_log:
+        role = "You" if msg["role"] == "user" else "Assistant"
+        icon = "🗨️" if msg["role"] == "user" else "🤖"
+        st.markdown(f"{icon} **{role}:** {msg['content']}")
 
 # ------------------------------------------------------------------
-# 5. Add a small button to reset the chat
+# 5️⃣  Reset / clear button
 # ------------------------------------------------------------------
-if st.button("Clear Chat"):
-    st.session_state.messages = []
-    st.session_state.chat_log = [] 
+if st.button("Clear chat"):
+    st.session_state.chat_log.clear()
+    st.experimental_rerun()
