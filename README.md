@@ -6,7 +6,7 @@ python -m venv venv
 ensure you activate your virtual environment
 source /venv/Scripts/activate (Git Bash Terminal)
 
-Install dependencies
+Install dependencies (Note dependencies may take a little while to install)
 
 pip install -r requirements.txt
 
