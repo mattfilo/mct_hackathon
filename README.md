@@ -3,5 +3,5 @@ Dependencies
 
 pip install streamlit spacy nltk transformers numpy
 
-To Start the front-end of the application, enter the home directory of the project and simply type:
+To Start the front-end of the application, enter the home directory of the project and simply type:  
 streamlit run main.py
