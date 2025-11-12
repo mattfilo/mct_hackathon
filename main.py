@@ -78,4 +78,3 @@ if st.session_state.chat_log:
 # ------------------------------------------------------------------
 if st.button("Clear chat"):
     st.session_state.chat_log.clear()
-    st.experimental_rerun()
