@@ -17,8 +17,8 @@ To Start the front-end of the application, enter the home directory of the proje
 streamlit run main.py
 
 
-Try some of these prompts!
-**Draw a pie chart for the percentage of airtime detected by pcl for high altitude slow speed orb flights**
-**show airtime detected by kairos for low altitude orb flights**
-# fast, slow, medium speed
-# high, low, medium altitude
+Try some of these prompts!  
+**Draw a pie chart for the percentage of airtime detected by pcl for high altitude slow speed orb flights**  
+**show airtime detected by kairos for low altitude orb flights**  
+fast, slow, medium speed  
+high, low, medium altitude  
