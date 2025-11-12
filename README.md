@@ -45,3 +45,9 @@ streamlit run main.py
 
 NOTE MAKE SURE YOU IMPORT THE PROPER CSV FILES INTO THE HOME DIRECTORY
 
+Try some of these prompts
+Draw a pie chart for the percentage of airtime detected by pcl for high altitude slow speed orb flights
+ 
+Draw a pie chart for the percentage of airtime detected by pcl for low altitude slow speed orb flights
+ 
+Draw a pie chart for the percentage of airtime detected by pcl for high altitude slow speed kairos flights
