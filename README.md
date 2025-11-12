@@ -1,5 +1,12 @@
 Dependencies are listed in requirements.txt
-(Would be Preferable to create a virtual environment before you install)
+
+Cd into the project directory and create a python virtual environment
+python -m venv venv
+
+ensure you activate your virtual environment
+source /venv/Scripts/activate (Git Bash Terminal)
+
+Install dependencies
 
 pip install -r requirements.txt
 
