@@ -43,3 +43,5 @@ pip install -r requirements.txt
 streamlit run main.py
 ```
 
+NOTE MAKE SURE YOU IMPORT THE PROPER CSV FILES INTO THE HOME DIRECTORY
+
