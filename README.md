@@ -22,3 +22,8 @@ Try some of these prompts!
 **show airtime detected by kairos for low altitude orb flights**  
 fast, slow, medium speed  
 high, low, medium altitude  
+
+Tools Used:
+Llama.cpp
+Streamlit Library
+Jupyter & Pandas
